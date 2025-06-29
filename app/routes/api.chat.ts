@@ -32,13 +32,13 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         messages.push({ role: 'assistant', content });
         messages.push({ role: 'user', content: CONTINUE_PROMPT });
 
-        const result = await streamText(messages, context.cloudflare.env, options);
+        const result = await streamText(messages, getEnv(context), options);
 
         return stream.switchSource(result.toAIStream());
       },
     };
 
-    const result = await streamText(messages, context.cloudflare.env, options);
+    const result = await streamText(messages, getEnv(context), options);
 
     stream.switchSource(result.toAIStream());
 
@@ -56,4 +56,16 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
       statusText: 'Internal Server Error',
     });
   }
+}
+
+function getEnv(context: any) {
+  // For Netlify deployment, get environment variables from process.env
+  if (typeof process !== 'undefined' && process.env) {
+    return {
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY
+    };
+  }
+  
+  // Fallback to Cloudflare context
+  return context?.cloudflare?.env || {};
 }

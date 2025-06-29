@@ -9,10 +9,19 @@ export default defineConfig((config) => {
   return {
     build: {
       target: 'esnext',
+      rollupOptions: {
+        external: config.mode === 'production' ? [] : ['@webcontainer/api']
+      }
+    },
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(config.mode),
     },
     plugins: [
       nodePolyfills({
-        include: ['path', 'buffer'],
+        include: ['path', 'buffer', 'process'],
+        globals: {
+          process: true,
+        },
       }),
       config.mode !== 'test' && remixCloudflareDevProxy(),
       remixVitePlugin({
